@@ -20,7 +20,7 @@ const App = () => {
       <Header/>
  
       {/* Main Content */}
-      <div className="min-h-screen">
+      <div className="min-h-[450px]">
         <Routes>
           {/* Home component displayed on root and when clicking "Home" */}
           <Route path="/" element={<Home/>} />
