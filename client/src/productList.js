@@ -20,7 +20,7 @@ const productList = [
         price: "PKR 2499",
         imageLink: "https://images.pexels.com/photos/4993077/pexels-photo-4993077.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
         newArrival: true,
-        gender: "Male",
+        gender: "Female",
         description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus molestiae, possimus culpa pariatur esse tempore quam aspernatur reprehenderit illo fuga velit voluptates temporibus similique aliquam nihil, explicabo magni eligendi iste?Nulla iure sed deleniti natus suscipit hic dolor odio eum quibusdam ex laudantium pariatur optio tempore omnis, repudiandae quia possimus numquam soluta inventore! Tenetur facere exercitationem inventore ipsam dolores tempora!"
     },
     {
