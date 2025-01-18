@@ -12,3 +12,6 @@ connectDatabase().then(()=>{
     app.listen(process.env.PORT || 8000)
     console.log("App is listening on port ", process.env.PORT)
 })
+.catch((error)=>{
+    console.log("Unable to connect with MongoDB ", error)
+})
