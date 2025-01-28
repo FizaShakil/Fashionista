@@ -15,15 +15,15 @@ if([email, password, username].some((field)=>field?.trim === " "))
 
 
 const existedUser = await User.findOne({
-    $or:[{username},{email}]
+    $or:[{email}]
 })
 
-if(!existedUser){
-    throw new ApiError(409, "User with username or email already exist")
+if(existedUser){
+    throw new ApiError(409, "User with email already exists")
 }
 // everythig working fine, create entry in db
 const user = await User.create({
-    username: username.toLowerCase(),
+    username,
     email,
     password
 })
@@ -39,6 +39,7 @@ if(!createdUser){
 return res.status(200).json(
     new ApiResponse(200, createdUser, "User Registered Successfully!! ")
 )
+
 })
 
 export {registerUser}
