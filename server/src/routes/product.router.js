@@ -8,7 +8,8 @@ productRouter.route('/upload-product-details').post(
     upload.single('productImage'),
     uploadProductDetails
 )
-productRouter.route('/delete-product-details').post(deleteProductDetails)
-productRouter.route('/update-product-details').post(updateProductDetails)
-productRouter.route('/grt-product-details').post(getProductDetails)
+productRouter.route('/delete-product-details').delete(deleteProductDetails)
+productRouter.route('/update-product-details').patch(updateProductDetails)
+productRouter.route('/get-product-details').get(getProductDetails)
+
 export default productRouter
