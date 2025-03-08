@@ -3,9 +3,23 @@ import { ApiError } from '../utils/ApiError.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import {User} from '../models/user.model.js'
 
-const generateAccessAndRefreshToken = asyncHandler(async(userId)=>{
+const generateAccessAndRefreshToken = async(userId)=>{
+    try {
+        const user = await user.findById(userId)
+        const accessToken = await user.generateAccessToken()
+        const refreshToken = await user.generateRefreshToken()
 
-})
+        user.refreshToken = refreshToken
+
+        await user.save(({
+            validateBeforeSave: false
+        })
+    )
+    return {accessToken, refreshToken}
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating tokens")
+    }
+}
 
 const registerUser = asyncHandler(async(req,res)=>{
     console.log(req.body)
@@ -46,10 +60,50 @@ return res.status(201).json(
 })
 
 const loginUser = asyncHandler(async(req,res)=>{
+    const {email, password} = req.body;
 
+    if(!email){
+        throw new ApiError(400, "Email is required")
+    }
+
+    const user = await User.find({email});
+
+    if(!user){
+        throw new ApiError(404, "User not found")
+    }
+
+    // check password
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new ApiError(401, "Invalid user Credentials")
+    }
+
+    //generate access and refresh token
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = User.findById(user._id)
+    .select("-password -refreshToken")
+    
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200, {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User logged in successfully!! "
+        )
+    )
 })
 
 const logoutUser = asyncHandler(async(req,res)=>{
     
 })
-export {registerUser}
+export {registerUser, loginUser, generateAccessAndRefreshToken}
