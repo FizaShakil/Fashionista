@@ -5,9 +5,9 @@ import {User} from '../models/user.model.js'
 
 const generateAccessAndRefreshToken = async(userId)=>{
     try {
-        const user = await user.findById(userId)
-        const accessToken = await user.generateAccessToken()
-        const refreshToken = await user.generateRefreshToken()
+        const user = await User.findById(userId)
+        const accessToken =  user.generateAccessTokens()
+        const refreshToken =  user.generateRefreshTokens()
 
         user.refreshToken = refreshToken
 
@@ -60,13 +60,14 @@ return res.status(201).json(
 })
 
 const loginUser = asyncHandler(async(req,res)=>{
+     console.log("Inco,ing request", req.body)
     const {email, password} = req.body;
 
     if(!email){
         throw new ApiError(400, "Email is required")
     }
 
-    const user = await User.find({email});
+    const user = await User.findOne({email});
 
     if(!user){
         throw new ApiError(404, "User not found")
@@ -82,7 +83,9 @@ const loginUser = asyncHandler(async(req,res)=>{
     //generate access and refresh token
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
 
-    const loggedInUser = User.findById(user._id)
+    console.log("Tokens Generated:", { accessToken, refreshToken });
+
+    const loggedInUser = await User.findById(user._id)
     .select("-password -refreshToken")
     
     const options = {
@@ -106,4 +109,5 @@ const loginUser = asyncHandler(async(req,res)=>{
 const logoutUser = asyncHandler(async(req,res)=>{
     
 })
+
 export {registerUser, loginUser, generateAccessAndRefreshToken}
