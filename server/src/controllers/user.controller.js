@@ -138,6 +138,9 @@ const changePassword = asyncHandler(async(req,res)=>{
     const {email, oldPassword, newPassword} = req.body
     
     const user = await User.findOne({email})
+    if(!user){
+        throw new ApiError(404, "User not found")
+    }
     const isPasswordCorrect = await User.isPasswordCorrect(oldPassword)
 
     if(!isPasswordCorrect){
