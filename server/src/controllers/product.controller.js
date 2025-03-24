@@ -140,9 +140,34 @@ const getProductDetails = asyncHandler(async(req,res)=>{
         new ApiResponse(200, products, "Products fetched successfully!")
     ) 
 })
+const updateProductImage = asyncHandler(async(req,res)=>{
+    const productImagePath = req.files?.path;
+    if(!productImagePath){
+        throw new ApiError(400, "Path required to update")
+    }
+    const productImage = await uploadOnCloudinary(productImagePath)
+    if(!productImage){
+        throw new ApiError(400, "Failed to upload file path on cloudinary")
+    }
+    const product = await Product.findByIdAndUpdate(
+        req.product?._id,
+        {
+            $set:{
+                productImage: productImage.url
+            }
+        },
+        {new: true}
+    )
+
+    return res.status(200)
+    .json(
+        200, product, "Product image updated successfully! "
+    )
+})
 export {
     uploadProductDetails,
     updateProductDetails,
     deleteProductDetails,
-    getProductDetails
+    getProductDetails,
+    updateProductImage
 }
