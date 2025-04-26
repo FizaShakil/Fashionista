@@ -1,23 +1,26 @@
 import React from 'react'
 import Heading from '../Reusable-subComponents/Heading'
 import productList from '../../../src/productList'
+import { useDispatch } from 'react-redux'
+import { addToCart } from '../../Redux/cartSlice'
 import { Link } from 'react-router-dom'
 
 const NewArrival = () => {
   const newArrivals = productList.filter((product) => product.newArrival);
+  const dispatch = useDispatch()
   return (
     <div className="py-8">
       <Heading heading="New Arrivals" />
       
       {/* Responsive Wrapper */}
       <div className="w-[90%] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 mb-8">
-        {newArrivals.map((product, index) => (
+        {newArrivals.map((product) => (
           <div
-            key={index}
+            key={product.id}
             className="bg-white shadow-md rounded-lg p-4 text-center hover:shadow-2xl transition duration-200"
           >
                   {/* Product Image */}
-                  <Link to={`/productpage/${index}`}>
+                  <Link to={`/productpage/${product.id}`}>
                 <img
                      src={product.imageLink}
                     alt={product.imageAlt || "Product Image"}
@@ -29,7 +32,12 @@ const NewArrival = () => {
                  <h3 className="text-lg font-semibold">{product.productName}</h3>
 
                   {/* Product Price */}
-                 <p className="text-sm text-gray-600 mt-1">{product.price}</p>
+                 <p className="text-sm text-gray-600 mt-1">PKR {product.price}</p>
+                 <button className="mt-2 border-2 px-4 py-1 rounded-md bg-black text-white hover:bg-slate-50
+                                                   hover:text-black hover:border-black duration-300 hover:border-[1px]"
+                                          onClick={()=> dispatch(addToCart(product))}>
+                                                                Add to cart
+                  </button>
           </div>
         ))}
       </div>

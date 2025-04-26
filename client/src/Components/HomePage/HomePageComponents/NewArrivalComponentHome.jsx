@@ -2,11 +2,15 @@ import React from "react";
 import Heading from "../../Reusable-subComponents/Heading"
 import productList from "../../../productList"
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../../Redux/cartSlice";
 import ViewAllButton from '../HomePageComponents/HomePageSubComponents/ViewAllButton'
 
 const NewArrivalComponentHome = () => {
   // Filter products with `newArrival: true`
   const newArrivals = productList.filter((product) => product.newArrival);
+
+  const dispatch = useDispatch()
 
   return (
     <div className="py-8">
@@ -32,7 +36,13 @@ const NewArrivalComponentHome = () => {
                  <h3 className="text-lg font-semibold">{product.productName}</h3>
 
                   {/* Product Price */}
-                 <p className="text-sm text-gray-600 mt-1">{product.price}</p>
+                 <p className="text-sm text-gray-600 mt-1">PKR {product.price}</p>
+                 
+                 <button className="mt-2 border-2 px-4 py-1 rounded-md bg-black text-white hover:bg-slate-50
+                                  hover:text-black hover:border-black duration-300 hover:border-[1px]"
+                         onClick={()=> dispatch(addToCart(product))}>
+                                               Add to cart
+                 </button>
           </div>
         ))}
       </div>

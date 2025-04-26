@@ -21,10 +21,6 @@ const productSchema = new Schema ({
         type: String,
         required: true
     },
-    category:{
-        type: Schema.Types.ObjectId,
-        ref: "Category"
-    },
     productImage:{
         type: String  // cloudinary URL of image
     },
