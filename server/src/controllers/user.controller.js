@@ -60,7 +60,7 @@ return res.status(201).json(
 })
 
 const loginUser = asyncHandler(async(req,res)=>{
-     console.log("Inco,ing request", req.body)
+     console.log("Incoming request", req.body)
     const {email, password} = req.body;
 
     if(!email){
@@ -72,7 +72,8 @@ const loginUser = asyncHandler(async(req,res)=>{
     if(!user){
         throw new ApiError(404, "User not found")
     }
-
+    
+    console.log("userlogin email: ", email)
     // check password
     const isPasswordValid = await user.isPasswordCorrect(password)
 
@@ -158,4 +159,11 @@ const changePassword = asyncHandler(async(req,res)=>{
         new ApiResponse(200,{}, "Password changed successfuly!! ")
     )
 })
-export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken, changePassword}
+const getCurrentUser = asyncHandler(async(req,res)=>{
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, req.user,"Current user fetched successfully!")
+    )
+})
+export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken, changePassword, getCurrentUser}
