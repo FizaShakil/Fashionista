@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useSelector } from "react-redux"; 
+import UserDropdown from "./UserDropdown";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const cartItems = useSelector((state) => state.cart.items);
+  const user = useSelector((state)=> state.user.user)
 
   const cartQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -27,9 +30,18 @@ const Header = () => {
 
           {/* Center Navigation */}
           <div className="hidden md:flex space-x-6 text-white md:ml-8 relative">
-            <NavLink to="/home" className={({ isActive }) => `hover:text-gray-100 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>Home</NavLink>
-            <NavLink to="/aboutus" className={({ isActive }) => `hover:text-gray-100 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>About Us</NavLink>
-            <NavLink to="/newarrival" className={({ isActive }) => `hover:text-gray-100 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>New Arrivals</NavLink>
+            <NavLink to="/home"
+                 className={({ isActive }) => `hover:text-gray-100 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
+                  Home
+            </NavLink>
+            <NavLink to="/aboutus" 
+                 className={({ isActive }) => `hover:text-gray-100 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
+                  About Us
+                  </NavLink>
+            <NavLink to="/newarrival" 
+            className={({ isActive }) => `hover:text-gray-100 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
+              New Arrivals
+            </NavLink>
 
             {/* Dropdown for Shop */}
             <div
@@ -48,7 +60,11 @@ const Header = () => {
               )}
             </div>
           </div>
-
+          <NavLink to="/contactus" 
+            className={({ isActive }) => `hover:text-gray-100 ml-4 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
+              Contact Us
+            </NavLink>
+            
           {/* Search Bar */}
           <div className="hidden md:flex flex-grow mx-4">
             <input
@@ -76,11 +92,31 @@ const Header = () => {
             </Link>
 
             {/* Login */}
-            <Link to={"/login"}>
+            {/* <Link to={"/login"}>
               <button aria-label="Profile" className="text-white hover:text-gray-100 focus:outline-none">
                 <i className="fas fa-user text-lg"></i>
               </button>
-            </Link>
+            </Link> */}
+      <div className="relative">
+        {user && user.username ? (
+          <>
+            <button
+              onClick={() => setUserMenuOpen((prev) => !prev)}
+              aria-label="User Menu"
+              className="w-10 h-10 rounded-full bg-gray-300 text-black flex items-center justify-center"
+            >
+              <span className="text-lg font-bold uppercase">{user?.username?.[0]}</span>
+            </button>
+            {userMenuOpen && <UserDropdown user={user} setMenuOpen={setUserMenuOpen} />}
+          </>
+        ) : (
+          <Link to="/login">
+            <button aria-label="Profile" className="text-white hover:text-gray-100 focus:outline-none">
+              <i className="fas fa-user text-lg"></i>
+            </button>
+          </Link>
+        )}
+      </div>
 
             {/* Mobile Menu Button */}
             <button
