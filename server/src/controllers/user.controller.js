@@ -91,7 +91,7 @@ const loginUser = asyncHandler(async(req,res)=>{
     
     const options = {
         httpOnly: true,
-        secure: true
+        secure: false //become true on development
     }
     return res
     .status(200)
@@ -121,7 +121,7 @@ const logoutUser = asyncHandler(async(req,res)=>{
     )
     const options = {
         httpOnly: true,
-        secure: true
+        secure: false    // it will become true in production
     }
 
     return res.
@@ -160,10 +160,13 @@ const changePassword = asyncHandler(async(req,res)=>{
     )
 })
 const getCurrentUser = asyncHandler(async(req,res)=>{
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, req.user,"Current user fetched successfully!")
-    )
+    try {
+        return res.status(200).json({
+          success: true,
+          user: req.user,
+        });
+      } catch (error) {
+        return res.status(500).json({ success: false, message: "Something went wrong" });
+      }
 })
 export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken, changePassword, getCurrentUser}
