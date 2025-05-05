@@ -140,6 +140,22 @@ const getProductDetails = asyncHandler(async(req,res)=>{
         new ApiResponse(200, products, "Products fetched successfully!")
     ) 
 })
+
+const getSingleProductDetails = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+  
+    const product = await Product.findById(id);
+  
+    if (!product) {
+      throw new ApiError(404, "Product not found");
+    }
+  
+    return res
+      .status(200)
+      .json(new ApiResponse(200, product, "Product fetched successfully!"));
+  });
+  
+
 const updateProductImage = asyncHandler(async(req,res)=>{
     const productImagePath = req.files?.path;
     if(!productImagePath){
@@ -169,5 +185,6 @@ export {
     updateProductDetails,
     deleteProductDetails,
     getProductDetails,
-    updateProductImage
+    updateProductImage,
+    getSingleProductDetails
 }
