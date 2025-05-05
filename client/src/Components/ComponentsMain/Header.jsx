@@ -16,7 +16,7 @@ const Header = () => {
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <nav className="bg-gray-950 shadow-md pb-2">
+    <nav className="bg-gray-950 sticky top-0 z-50 shadow-md pb-2">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -59,11 +59,12 @@ const Header = () => {
                 </div>
               )}
             </div>
-          </div>
-          <NavLink to="/contactus" 
+            <NavLink to="/contactus" 
             className={({ isActive }) => `hover:text-gray-100 ml-4 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
               Contact Us
             </NavLink>
+          </div>
+         
             
           {/* Search Bar */}
           <div className="hidden md:flex flex-grow mx-4">
@@ -91,12 +92,6 @@ const Header = () => {
               </button>
             </Link>
 
-            {/* Login */}
-            {/* <Link to={"/login"}>
-              <button aria-label="Profile" className="text-white hover:text-gray-100 focus:outline-none">
-                <i className="fas fa-user text-lg"></i>
-              </button>
-            </Link> */}
       <div className="relative">
         {user && user.username ? (
           <>
@@ -152,6 +147,7 @@ const Header = () => {
               </div>
             )}
           </div>
+          <NavLink to='/contactus' className='block px-4 py-2 text-gray-800 hover:bg-gray-200'>Contact Us</NavLink>
         </div>
       )}
     </nav>
