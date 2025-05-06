@@ -1,13 +1,21 @@
-import React from 'react'
+import React, {useState, useEffect} from "react";
 import Heading from '../Reusable-subComponents/Heading'
-import productList from '../../../src/productList'
+// import productList from '../../../src/productList'
 import { Link } from 'react-router-dom'
 import { addToCart } from '../../Redux/cartSlice'
 import { useDispatch } from 'react-redux'
+import axiosInstance from '../../axiosInstance'
 
 const Women = () => {
-  const womenProducts = productList.filter((product) => product.gender === 'Female');
-  const dispatch = useDispatch()
+  const [womenProducts, setWomenProducts] = useState([]);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    axiosInstance
+      .get('/api/v1/products/get-product-details?gender=Female')
+      .then((res) => setWomenProducts(res.data.data))
+      .catch(() => setWomenProducts([]));
+  }, []);
   return (
     <div className="py-8">
       <Heading heading="Women" />
@@ -20,16 +28,16 @@ const Women = () => {
             className="bg-white shadow-md rounded-lg p-4 text-center hover:shadow-2xl transition duration-200"
           >
                   {/* Product Image */}
-                  <Link to={`/productpage/${product.id}`}>
+                  <Link to={`/productpage/${product._id}`}>
                 <img
-                     src={product.imageLink}
-                    alt={product.imageAlt || "Product Image"}
+                     src={product.productImage}
+                    alt={product.name || "Product Image"}
                     className="w-full h-48 object-cover rounded-md mb-4"
                  />
                  </Link>
 
                   {/* Product Name */}
-                 <h3 className="text-lg font-semibold">{product.productName}</h3>
+                 <h3 className="text-lg font-semibold">{product.name}</h3>
 
                   {/* Product Price */}
                  <p className="text-sm text-gray-600 mt-1">PKR {product.price}</p>

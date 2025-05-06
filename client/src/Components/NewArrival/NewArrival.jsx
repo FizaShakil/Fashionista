@@ -1,13 +1,20 @@
-import React from 'react'
+import React, {useState, useEffect} from "react";
 import Heading from '../Reusable-subComponents/Heading'
-import productList from '../../../src/productList'
 import { useDispatch } from 'react-redux'
+import axiosInstance from "../../axiosInstance";
 import { addToCart } from '../../Redux/cartSlice'
 import { Link } from 'react-router-dom'
 
 const NewArrival = () => {
-  const newArrivals = productList.filter((product) => product.newArrival);
-  const dispatch = useDispatch()
+  const [newArrivals, setNewArrivals] = useState([]);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    axiosInstance.get('/api/v1/products/get-product-details?newArrival=true')
+      .then(res => setNewArrivals(res.data.data))
+      .catch(() => setNewArrivals([]));
+  }, []);
+
   return (
     <div className="py-8">
       <Heading heading="New Arrivals" />
@@ -16,20 +23,20 @@ const NewArrival = () => {
       <div className="w-[90%] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 mb-8">
         {newArrivals.map((product) => (
           <div
-            key={product.id}
+            key={product._id}
             className="bg-white shadow-md rounded-lg p-4 text-center hover:shadow-2xl transition duration-200"
           >
                   {/* Product Image */}
-                  <Link to={`/productpage/${product.id}`}>
+                  <Link to={`/productpage/${product._id}`}>
                 <img
-                     src={product.imageLink}
-                    alt={product.imageAlt || "Product Image"}
+                     src={product.productImage}
+                    alt={product.name || "Product Image"}
                     className="w-full h-48 object-cover rounded-md mb-4"
                  />
                  </Link>
 
                   {/* Product Name */}
-                 <h3 className="text-lg font-semibold">{product.productName}</h3>
+                 <h3 className="text-lg font-semibold">{product.name}</h3>
 
                   {/* Product Price */}
                  <p className="text-sm text-gray-600 mt-1">PKR {product.price}</p>
