@@ -169,4 +169,20 @@ const getCurrentUser = asyncHandler(async(req,res)=>{
         return res.status(500).json({ success: false, message: "Something went wrong" });
       }
 })
-export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken, changePassword, getCurrentUser}
+const getAllUserDetails = asyncHandler(async(req, res)=>{
+    const {email} = req.body
+
+     const users = await User.find({})
+     .select("username email createdAt updatedAt")
+
+     if(!users){
+        throw new ApiError(500, "Something went wrong while fetching the users details")
+     }
+
+     return res
+     .status(200)
+     .json(
+        new ApiResponse(200, users, "Users fetched successfully! ")
+     )
+})
+export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken, changePassword, getCurrentUser, getAllUserDetails}
