@@ -128,7 +128,7 @@ const getProductDetails = asyncHandler(async(req,res)=>{
     if(search) filter.name = {$regex: "search", $options: "i"}
    
     const products = await Product.find(filter)
-    .select("name price description gender newArrival productImage ")
+    .select("name price description gender newArrival productImage productUniqueID")
     
     if(!products){
         throw new ApiError(500, "Something went wrong while getting products")
