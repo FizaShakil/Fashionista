@@ -18,6 +18,7 @@ import AddToCart from './Components/AddToCart/AddToCart.jsx';
 import Account from './Components/ComponentsMain/Account.jsx';
 import ContactUs from './Components/ComponentsMain/ContactUs.jsx';
 import { useDispatch } from 'react-redux';
+import Checkout from './Components/AddToCart/Checkout.jsx';
 
 const App = () => {
 
@@ -57,6 +58,7 @@ const App = () => {
           <Route path='/account' element={<Account/>}/>
           <Route path='/contactus' element={<ContactUs/>}/>
           <Route path='/addtocart' element={<AddToCart />} />
+          <Route path='/checkout' element={<Checkout/>} />
         </Routes>
       </div>
 
