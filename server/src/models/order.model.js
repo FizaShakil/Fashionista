@@ -21,29 +21,40 @@ const orderSchema = new mongoose.Schema({
 			},
 		},
 	],
-	items: {
-		type: ObjectId,
-		ref: 'Cart',
+
+	// items: {
+	// 	type: ObjectId,
+	// 	ref: 'Cart',
+	// },
+    name:{
+		type:String,
+		required: true
 	},
 	amount: {
 		type: Number,
 		required: true,
 	},
 	email: {
-		type: Number,
+		type: String,
 		required: true,
 	},
 	address: { 
-		type: ObjectId, 
+		type: String, 
 		required: true,
 	},
 	phone:{
 		type: String,
 		required: true,
 	},
+	paymentMethod: {
+        type: String,
+        enum: ['Cash on Delivery', 'Credit Card', 'Easypaisa'],
+        default: 'Cash on Delivery',
+    },
 	status: {
 		type: String,
-		default: "pending",
+		enum: ['Delivered', 'Cancelled', 'Pending'],
+		default: "Pending",
 	},
 }, 
 	{timestamps: true}

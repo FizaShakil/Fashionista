@@ -80,5 +80,39 @@ const getCart = asyncHandler(async(req,res)=>{
         new ApiResponse(200, cart, "Products get successfully")
     )
 })
+const syncCartController = asyncHandler(async (req, res) => {
+   const userID = req.user._id;
+    const cartFromFrontend = req.body.cartItems; // expect array of full product objects
+     if (!Array.isArray(cartFromFrontend) || cartFromFrontend.length === 0) {
+        throw new ApiError(400, "Cart is empty")
+  }
 
-export {addToCart, updateQuantity, removeFromCart, getCart}
+       // Map to minimal schema: only productID and quantity
+     const refinedProducts = cartFromFrontend.map((item) => ({
+        productID: item.productID,
+        quantity: item.quantity,
+    }));
+
+     // Check if user already has a cart
+   const existingCart = await CartModel.findOne({ userID });
+
+   if (existingCart) {
+    // Replace existing cart with new data from frontend
+     existingCart.products = refinedProducts;
+     await existingCart.save();
+  } 
+   else {
+    // Create new cart
+    await Cart.create({
+      userID,
+      products: refinedProducts,
+    });
+  }
+
+  res.status(200)
+  .json(
+    new ApiResponse(200, )
+  );
+});
+
+export {addToCart, updateQuantity, removeFromCart, getCart, syncCartController}
