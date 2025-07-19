@@ -40,6 +40,7 @@ const uploadProductDetails = asyncHandler(async(req,res)=>{
         newArrival
     })
 
+
     // check if product created or not
 
     const uploadedProduct = await Product.findById(product._id)
@@ -53,6 +54,7 @@ const uploadProductDetails = asyncHandler(async(req,res)=>{
         new ApiResponse(200, uploadedProduct, "Product details uploaded successfully!!")
     )
 })
+
 
 //update product details
 const updateProductDetails = asyncHandler(async (req, res) => {

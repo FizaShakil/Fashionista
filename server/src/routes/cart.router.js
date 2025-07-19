@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { addToCart, updateQuantity, removeFromCart, getCart } from "../controllers/cart.controller.js";
-
+import { addToCart, updateQuantity, removeFromCart, getCart, syncCartController } from "../controllers/cart.controller.js";
+import verifyJWT from '../middlewares/auth.middleware.js'
 const cartRouter = Router()
 
-cartRouter.route('/add-to-cart').post(addToCart)
-cartRouter.route('/update-quantity').patch(updateQuantity)
-cartRouter.route('/remove-from-cart').delete(removeFromCart)
-cartRouter.route('/get-cart/:userID').get(getCart)
+cartRouter.route('/add-to-cart').post(verifyJWT, addToCart)
+cartRouter.route('/update-quantity').patch(verifyJWT,updateQuantity)
+cartRouter.route('/remove-from-cart').delete(verifyJWT, removeFromCart)
+cartRouter.route('/get-cart/:userID').get(verifyJWT, getCart)
+cartRouter.route('/sync').post(verifyJWT, syncCartController)
 
 export default cartRouter
