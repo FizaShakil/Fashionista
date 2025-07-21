@@ -1,14 +1,29 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import axiosInstance from '../axiosInstance'
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    try {
+      confirm("Are you sure want to logout?")
+      await axiosInstance.post('/api/v1/users/logout');
+    } catch (e) {}
+    localStorage.removeItem('isAdmin');
+    navigate('/login');
+  };
   return (
-    <div>
+    <div className="flex flex-col h-full justify-between">
       <div>
-        <div className='flex flex-col text-sm justify-between h-48 list-none ml-8 mt-7 w-44'>
+        <div className='flex flex-col text-sm justify-between h-60 list-none ml-8 mt-7 w-44'>
           <ul className="space-y-7 flex flex-col justify-between">
-            <NavLink to='/'>
-                <li className="font-semibold text-pink-800">
+            <NavLink to='/dashboard'>
+                <li className="font-semibold text-blue-800">
+                   <i className="fas fa-tachometer-alt"></i> Dashboard
+                 </li>
+            </NavLink>
+            <NavLink to='/additems'>
+                <li className="font-semibold text-gray-700">
                    <i className="fas fa-plus-circle"></i> Add Items
                  </li>
             </NavLink>
@@ -24,14 +39,19 @@ const Sidebar = () => {
             </NavLink>
             <NavLink to='/userslist'>
                 <li className="text-gray-700">
-                   <i className="fas fa-user"></i> Users-List
+                   <i className="fas fa-user"></i> Users List
                 </li>
             </NavLink>
          </ul>
       </div>
-      <div>
-         
       </div>
+      <div className="mb-8 ml-8">
+        <button
+          onClick={handleLogout}
+          className="w-36 py-2 bg-red-600 hover:bg-red-700 text-white rounded shadow font-semibold flex items-center justify-center gap-2"
+        >
+          <i className="fas fa-sign-out-alt"></i> Logout
+        </button>
       </div>
     </div>
   )
