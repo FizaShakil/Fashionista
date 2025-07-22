@@ -22,7 +22,7 @@ const generateAccessAndRefreshToken = async(userId)=>{
 }
 
 const registerUser = asyncHandler(async(req,res)=>{
-    console.log(req.body)
+    // console.log(req.body)
     const {username, email, password} = req.body;
     console.log("email", email)
 
@@ -53,14 +53,30 @@ if(!createdUser){
     throw new ApiError(400, "Something went wrong while registering the user")
 }
 
-return res.status(201).json(
-    new ApiResponse(200, createdUser, "User Registered Successfully!! ")
+// Generate access and refresh tokens for the new user
+const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+const options = {
+    httpOnly: true,
+    secure: false //become true on development
+}
+
+return res
+.status(201)
+.cookie("accessToken", accessToken, options)
+.cookie("refreshToken", refreshToken, options)
+.json(
+    new ApiResponse(200, {
+        user: createdUser, 
+        accessToken, 
+        refreshToken
+    }, "User Registered Successfully!! ")
 )
 
 })
 
 const loginUser = asyncHandler(async(req,res)=>{
-     console.log("Incoming request", req.body)
+    //  console.log("Incoming request", req.body)
     const {email, password} = req.body;
 
     if(!email){
@@ -84,7 +100,7 @@ const loginUser = asyncHandler(async(req,res)=>{
     //generate access and refresh token
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
 
-    console.log("Tokens Generated:", { accessToken, refreshToken });
+    // console.log("Tokens Generated:", { accessToken, refreshToken });
 
     const loggedInUser = await User.findById(user._id)
     .select("-password -refreshToken")
@@ -93,6 +109,21 @@ const loginUser = asyncHandler(async(req,res)=>{
         httpOnly: true,
         secure: false //become true on development
     }
+    // Set different cookie for admin
+    if (user.role === 'admin') {
+      return res
+        .status(200)
+        .cookie("adminAccessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+          new ApiResponse(
+            200, {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "Admin logged in successfully!! "
+          )
+        );
+    } else {
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -104,7 +135,8 @@ const loginUser = asyncHandler(async(req,res)=>{
             },
             "User logged in successfully!! "
         )
-    )
+        );
+    }
 })
 
 const logoutUser = asyncHandler(async(req,res)=>{
@@ -127,6 +159,7 @@ const logoutUser = asyncHandler(async(req,res)=>{
     return res.
     status(200)
     .clearCookie("accessToken", options)
+    .clearCookie("adminAccessToken", options)
     .clearCookie("refreshToken", options)
     .json(
         new ApiResponse(

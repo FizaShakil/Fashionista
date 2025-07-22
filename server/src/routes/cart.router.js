@@ -5,8 +5,8 @@ const cartRouter = Router()
 
 cartRouter.route('/add-to-cart').post(verifyJWT, addToCart)
 cartRouter.route('/update-quantity').patch(verifyJWT,updateQuantity)
-cartRouter.route('/remove-from-cart').delete(verifyJWT, removeFromCart)
-cartRouter.route('/get-cart/:userID').get(verifyJWT, getCart)
+cartRouter.route('/remove-from-cart').post(verifyJWT, removeFromCart)
+cartRouter.route('/get-cart').get(verifyJWT, getCart)
 cartRouter.route('/sync').post(verifyJWT, syncCartController)
 
 export default cartRouter

@@ -5,7 +5,8 @@ import {asyncHandler} from '../utils/asyncHandler.js'
 
 //add to cart
 const addToCart = asyncHandler(async(req,res)=>{
-    const {userID, productID } = req.body
+    const userID = req.user._id;
+    const {productID } = req.body
 
     let cart = await Cart.findOne({userID})
     if(!cart){
@@ -30,7 +31,8 @@ const addToCart = asyncHandler(async(req,res)=>{
 
 //increment/decrement product in cart {update quantity}
 const updateQuantity = asyncHandler(async(req,res)=>{
-    const {userID, productID, action} = req.body
+    const userID = req.user._id;
+    const {productID, action} = req.body
 
     const cart = await Cart.findOne({userID})
     if(!cart){
@@ -54,13 +56,23 @@ const updateQuantity = asyncHandler(async(req,res)=>{
 
 //delete product from cart
 const removeFromCart = asyncHandler(async(req,res)=>{
-    const {userID, productID} = req.body
+    const userID = req.user._id;
+    const {productID} = req.body
+    
+    // console.log("Remove from cart request:", { userID, productID });
+    
     const cart = await Cart.findOne({userID})
 
     if(!cart){
         throw new ApiError(404, "Cart not found")
     }
+    
+    // console.log("Cart before removal:", cart.products.length, "items");
+    
     cart.products = cart.products.filter(p=> p.productID.toString() !== productID) // remove
+    
+    // console.log("Cart after removal:", cart.products.length, "items");
+    
     await cart.save();
     return res.status(200)
     .json(
@@ -71,9 +83,16 @@ const removeFromCart = asyncHandler(async(req,res)=>{
 //get cart
 const getCart = asyncHandler(async(req,res)=>{
 
-    const {userID} = req.params
+    const userID = req.user._id;
     const cart = await Cart.findOne({userID})
     .populate('products.productID').select('-description -productUniqueID');
+
+    if (!cart) {
+        return res.status(200)
+        .json(
+            new ApiResponse(200, { products: [] }, "Cart is empty")
+        )
+    }
 
      return res.status(200)
     .json(
@@ -83,18 +102,23 @@ const getCart = asyncHandler(async(req,res)=>{
 const syncCartController = asyncHandler(async (req, res) => {
    const userID = req.user._id;
     const cartFromFrontend = req.body.cartItems; // expect array of full product objects
+     
+    // If cart is empty, just return success (no need to create empty cart)
      if (!Array.isArray(cartFromFrontend) || cartFromFrontend.length === 0) {
-        throw new ApiError(400, "Cart is empty")
+        return res.status(200)
+        .json(
+            new ApiResponse(200, { message: "No items to sync" }, "Cart sync completed")
+        );
   }
 
        // Map to minimal schema: only productID and quantity
      const refinedProducts = cartFromFrontend.map((item) => ({
-        productID: item.productID,
-        quantity: item.quantity,
+        productID: item._id || item.productID,
+        quantity: item.quantity || 1,
     }));
 
      // Check if user already has a cart
-   const existingCart = await CartModel.findOne({ userID });
+   const existingCart = await Cart.findOne({ userID });
 
    if (existingCart) {
     // Replace existing cart with new data from frontend
@@ -111,7 +135,7 @@ const syncCartController = asyncHandler(async (req, res) => {
 
   res.status(200)
   .json(
-    new ApiResponse(200, )
+    new ApiResponse(200, { message: "Cart synced successfully" }, "Cart synced successfully")
   );
 });
 

@@ -21,11 +21,6 @@ const orderSchema = new mongoose.Schema({
 			},
 		},
 	],
-
-	// items: {
-	// 	type: ObjectId,
-	// 	ref: 'Cart',
-	// },
     name:{
 		type:String,
 		required: true
