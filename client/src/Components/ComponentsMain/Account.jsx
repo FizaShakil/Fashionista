@@ -35,7 +35,9 @@ const Account = () => {
       </button>
 
       {/* Action Buttons */}
+     
       <div className="mt-6 space-y-3">
+      <Link to='/myorders'>
         <button className="w-full flex items-center justify-between px-4 py-3 border rounded-md hover:bg-gray-50">
           <span className="flex items-center gap-2">
             <i className="fas fa-box"></i>
@@ -43,6 +45,7 @@ const Account = () => {
           </span>
           <i className="fas fa-chevron-right"></i>
         </button>
+        </Link>
 
       <Link to='/addtocart'>
         <button className="w-full flex items-center justify-between px-4 py-3 border rounded-md hover:bg-gray-50">

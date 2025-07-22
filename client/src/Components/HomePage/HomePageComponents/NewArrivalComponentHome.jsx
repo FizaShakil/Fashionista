@@ -1,16 +1,14 @@
 import React, {useState, useEffect} from "react";
 import Heading from "../../Reusable-subComponents/Heading"
-// import productList from "../../../productList"
+import { useHandleAddToCart } from "../../Reusable-subComponents/HandleAddToCart";
 import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../../../Redux/cartSlice";
 import axiosInstance from "../../../axiosInstance";
 import ViewAllButton from '../HomePageComponents/HomePageSubComponents/ViewAllButton'
 
 const NewArrivalComponentHome = () => {
   // Filter products with `newArrival: true`
   const [newArrivals, setNewArrivals] = useState([]);
-  const dispatch = useDispatch();
+  const handleAddToCart = useHandleAddToCart();
   
     useEffect(() => {
       axiosInstance.get('/api/v1/products/get-product-details?newArrival=true')
@@ -39,14 +37,14 @@ const NewArrivalComponentHome = () => {
                  </Link>
 
                   {/* Product Name */}
-                 <h3 className="text-lg font-semibold">{product.name}</h3>
+                 <h3 className="text-lg font-semibold text-[#0b1a26]">{product.name}</h3>
 
                   {/* Product Price */}
                  <p className="text-sm text-gray-600 mt-1">PKR {product.price}</p>
                  
-                 <button className="mt-2 border-2 px-4 py-1 rounded-md bg-black text-white hover:bg-slate-50
-                                  hover:text-black hover:border-black duration-300 hover:border-[1px]"
-                         onClick={()=> dispatch(addToCart(product))}>
+                 <button className="mt-2 border-2 px-4 py-1 rounded-md bg-[#284964] text-white hover:bg-slate-50
+                                  hover:text-[#284964] hover:border-[#284964] duration-300 hover:border-[1px]"
+                         onClick={() => handleAddToCart(product)}>
                                                Add to cart
                  </button>
           </div>

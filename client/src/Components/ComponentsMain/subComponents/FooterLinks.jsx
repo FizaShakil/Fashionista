@@ -9,7 +9,7 @@ const Link = ({link})=>{
 const LinkMain = ({main}) => {
   return (
     <div>
-      <h1 className='text-2xl footerHead mt-4'>{main}</h1>
+      <h1 className='text-2xl footerHead mt-4 text-[#193246]'>{main}</h1>
     </div>
   )
 }

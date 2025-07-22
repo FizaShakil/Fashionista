@@ -7,9 +7,9 @@ const Footer = () => {
     <>
       <SubscribeNewsletter/>
     <div className='ml-6 mb-10 md:flex md:justify-between'>
-    <div className="text-2xl font-bold text-gray-950 md:relative mt-8 md:top-5">
-            Fashionista
-            <p className="text-xs font-normal mb-5">An ultimate fashion hub for you </p>
+    <div className="text-[28px] font-bold text-[#193246] md:relative mt-8 md:top-5">
+           <p className='logo'>Fashionista</p> 
+            <p className="text-xs font-medium mb-5 Mainfont relative bottom-2">An ultimate fashion hub for you </p>
             <div className='flex w-[150px] justify-between'>
               <i className='fa-facebook fa-brands'></i>
               <i className='fa-instagram fa-brands'></i>
@@ -17,7 +17,7 @@ const Footer = () => {
               <i className='fa-tiktok fa-brands'></i>
             </div>
     </div>
-    <div className='sm:flex sm:justify-evenly md:w-[75%]'>
+    <div className='sm:flex sm:justify-evenly md:w-[75%] text-[#193246'>
       <div>
     <LinkMain main={"Shop"}/>
             <Link link={"Men"}/>

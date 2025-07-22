@@ -6,8 +6,8 @@ const ViewAllButton = ({navigateLink}) => {
     <div>
       <Link to= {navigateLink}>
         <button 
-          className='relative left-1/2 transform -translate-x-1/2 rounded-full bg-black text-white
-           w-[30%] py-2 hover:underline hover:bg-slate-50 hover:border-2 hover:border-black hover:text-black duration-200 md:w-[15%] mb-5'>
+          className='relative left-1/2 transform -translate-x-1/2 rounded-full bg-[#193246] text-white
+           w-[30%] py-2 hover:underline hover:bg-slate-50 hover:border-2 hover:border-[#193246] hover:text-[#193246] duration-200 md:w-[15%] mb-5'>
             View more
         </button>
         </Link>

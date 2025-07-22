@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom'
 import { setUser } from '../../Redux/userSlice';
+import { setCartItems } from '../../Redux/cartSlice';
 import axiosInstance from '../../axiosInstance';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +22,43 @@ const Signup = () => {
       try {
         const res = await axiosInstance.post("/api/v1/users/register", { username, email, password });
   
-        dispatch(setUser(res.data.data));
+        const { user, accessToken } = res.data.data;
+        const authUser = { ...user, accessToken };
+        dispatch(setUser(authUser));
+
+        // Sync cart
+        const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        if (localCart.length > 0) {
+          try {
+            await axiosInstance.post("/api/v1/cart/sync", { cartItems: localCart }, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            localStorage.removeItem("cart");
+          } catch (syncError) {
+            console.error("Cart sync error:", syncError);
+            // Continue with signup even if cart sync fails
+          }
+        }
+
+        try {
+          const { data } = await axiosInstance.get(`/api/v1/cart/get-cart`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+          
+          if (data.data && data.data.products) {
+            // Transform the cart data to match the expected format
+            const cartItems = data.data.products.map(item => ({
+              ...item.productID,
+              quantity: item.quantity
+            }));
+            dispatch(setCartItems(cartItems));
+          }
+        } catch (cartError) {
+          console.error("Get cart error:", cartError);
+          // Continue with signup even if getting cart fails
+        }
+
         navigate("/");
       } catch (error) {
         if (error.response && error.response.data.message) {
@@ -34,7 +71,7 @@ const Signup = () => {
   
     return (
         <div className='w-[85%] min-[600px]:w-[400px] mt-8 relative left-1/2 transform -translate-x-1/2'>
-            <h1 className='text-4xl text-center font-bold mt-8'>Signup</h1>
+            <h1 className='text-4xl text-center font-bold mt-8 text-[#224059]'>New Here? Signup Now</h1>
             <div className='mt-8'>
 
       <form onSubmit={handleSignup} className="mt-8">
@@ -70,14 +107,14 @@ const Signup = () => {
    {errorMsg && <p className="text-red-500 text-center mb-4">{errorMsg}</p>}
         <button
           type="submit"
-          className="w-full py-2 mt-6 bg-gray-900 rounded-md text-white"
+          className="w-full py-2 mt-6 bg-[#193246] rounded-md text-white"
         >
           Register
         </button>
         <div className='w-[100%] flex justify-center mt-5'>
                      <p>Already have an account?</p>
                          <Link to={'/login'}
-                             className='font-semibold ml-2 hover:underline'> 
+                             className='font-semibold ml-2 hover:underline text-[#193246]'> 
                                   Login here
                         </Link>
                      

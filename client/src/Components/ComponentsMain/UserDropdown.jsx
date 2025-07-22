@@ -26,13 +26,25 @@ const UserDropdown = ({ user, setMenuOpen }) => {
         <p className="font-medium">{user.username}</p>
         <p className="text-sm font-bold text-gray-600">{user.email}</p>
       </div>
-      <Link to="/addtocart" className="block px-4 py-2 hover:bg-gray-100">
+      <Link to="/addtocart" className="block px-4 py-2 hover:bg-gray-100"
+      onClick={()=>{
+        setMenuOpen(false)
+      }}
+      >
         <i className="fas fa-shopping-cart mr-2"></i>Cart
       </Link>
-      <Link to="/orders" className="block px-4 py-2 hover:bg-gray-100">
-        <i className="fas fa-box mr-2"></i>Orders
+      <Link to="/myorders" className="block px-4 py-2 hover:bg-gray-100"
+      onClick={()=>{
+        setMenuOpen(false)
+      }}
+      >
+        <i className="fas fa-box mr-2"></i> My Orders
       </Link>
-      <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">
+      <Link to="/account" className="block px-4 py-2 hover:bg-gray-100"
+      onClick={()=>{
+        setMenuOpen(false)
+      }}
+      >
         <i className="fas fa-user mr-2"></i>Account
       </Link>
       <button

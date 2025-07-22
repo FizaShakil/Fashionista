@@ -3,6 +3,7 @@ import LandingPage from "./HomePageComponents/LandingPage"
 import NewArrivalComponentHome from './HomePageComponents/NewArrivalComponentHome'
 import BrowseByCategory from './HomePageComponents/BrowseByCategory'
 import Reviews from './HomePageComponents/Reviews'
+import FAQ from './HomePageComponents/FAQ'
 
 const Home = () => {
   return (
@@ -11,6 +12,7 @@ const Home = () => {
     <NewArrivalComponentHome/>
     <BrowseByCategory/>
     <Reviews/>
+    <FAQ/>
     </>
   )
 }

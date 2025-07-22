@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useSelector } from "react-redux"; 
-import UserDropdown from "./UserDropdown";
+import UserDropdown from "./UserDropdown.jsx";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,23 +9,22 @@ const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const cartItems = useSelector((state) => state.cart.items);
-  const user = useSelector((state)=> state.user.user)
+     const user = useSelector((state) => state.user.user);
+    const cartItems = useSelector((state) => state.cart?.cartItems || []);
+    const cartQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const cartQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <nav className="bg-gray-950 sticky top-0 z-50 shadow-md pb-2">
+    <nav className="bg-[#193246] sticky top-0 z-50 shadow-md pb-2">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <div className="text-2xl font-bold text-white">
+          <div className="text-[28px] font-bold text-white logo pt-2">
             <Link to='/'>
               Fashionista
             </Link>
-            <p className="text-xs font-normal">An ultimate fashion hub for you</p>
+            <p className="text-xs font-medium MainFont relative bottom-2">An ultimate fashion hub for you</p>
           </div>
 
           {/* Center Navigation */}
@@ -86,7 +85,7 @@ const Header = () => {
                 <i className="fas fa-shopping-cart text-lg"></i>
                 {cartQuantity > 0 && (
                   <span className="absolute -top-0 -right-1 bg-blue-600 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                    {cartQuantity}
+                    {cartQuantity || 0}
                   </span>
                 )}
               </button>
@@ -138,7 +137,8 @@ const Header = () => {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-200"
             >
-              Shop <i className="fas fa-chevron-down ml-1"></i>
+              Shop 
+            <i className="fas fa-chevron-down ml-1"></i>
             </button>
             {isDropdownOpen && (
               <div className="ml-4">
