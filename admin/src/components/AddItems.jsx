@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {useNavigate} from 'react-router-dom'
-import axiosInstance from "../../../client/src/axiosInstance";
+import axiosInstance from "../axiosInstance";
 
 const AddItems= () =>{
   const navigate = useNavigate()
