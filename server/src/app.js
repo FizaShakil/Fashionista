@@ -9,22 +9,34 @@ import dashboardRouter from './routes/dashboard.router.js';
 
 
 const app = express();
+
+// Enhanced CORS configuration for deployment
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : [];
+  : ['http://localhost:5173', 'http://localhost:3000', 'https://your-frontend-domain.com'];
 
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      } else {
-        return callback(new Error('Not allowed by CORS'));
       }
+      
+      // For development, allow localhost variations
+      if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+        return callback(null, true);
+      }
+      
+      console.log('CORS blocked origin:', origin);
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 // Middleware and routes

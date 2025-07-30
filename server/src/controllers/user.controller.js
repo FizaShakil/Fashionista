@@ -58,7 +58,9 @@ const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id
 
 const options = {
     httpOnly: true,
-    secure: false //become true on development
+    secure: process.env.NODE_ENV === 'production', // true in production, false in development
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }
 
 return res
@@ -107,7 +109,9 @@ const loginUser = asyncHandler(async(req,res)=>{
     
     const options = {
         httpOnly: true,
-        secure: false //become true on development
+        secure: process.env.NODE_ENV === 'production', // true in production, false in development
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
     // Set different cookie for admin
     if (user.role === 'admin') {
@@ -153,7 +157,8 @@ const logoutUser = asyncHandler(async(req,res)=>{
     )
     const options = {
         httpOnly: true,
-        secure: false    // it will become true in production
+        secure: process.env.NODE_ENV === 'production', // true in production, false in development
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 
     return res.

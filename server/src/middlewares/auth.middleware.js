@@ -9,8 +9,12 @@ const verifyJWT= asyncHandler(async(req,res,next)=>{
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
     
         if(!token){
+            console.log('No token found in request');
+            console.log('Cookies:', req.cookies);
+            console.log('Headers:', req.headers);
             throw new ApiError(401, "Unauthorized request")
         }
+        
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
         const user = await User.findById(decodedToken?._id)
         .select("-password -refreshToken")
@@ -21,6 +25,7 @@ const verifyJWT= asyncHandler(async(req,res,next)=>{
         req.user = user;
         next()
     } catch (error) {
+        console.log('JWT verification error:', error.message);
         throw new ApiError(400, error?.message || "Invalid access token. Not able to verify")
     }
 })
@@ -57,6 +62,9 @@ const verifyAnyJWT = asyncHandler(async(req,res,next)=>{
         let token = clientToken || adminToken
     
         if(!token){
+            console.log('No token found in verifyAnyJWT');
+            console.log('Cookies:', req.cookies);
+            console.log('Authorization header:', req.header("Authorization"));
             throw new ApiError(401, "Unauthorized request")
         }
         
@@ -70,6 +78,7 @@ const verifyAnyJWT = asyncHandler(async(req,res,next)=>{
         req.user = user;
         next()
     } catch (error) {
+        console.log('verifyAnyJWT error:', error.message);
         throw new ApiError(400, error?.message || "Invalid access token. Not able to verify")
     }
 })
