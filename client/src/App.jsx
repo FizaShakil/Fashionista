@@ -29,16 +29,22 @@ const App = () => {
 
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.user)
-   useEffect(() => {
-    axiosInstance
-      .get("/api/v1/users/me")
-      .then((res) => {
-        dispatch(setUser(res.data.user));
-        console.log("Fullresponse: ", res.data.user)
-      })
-      .catch(() => {
-        dispatch(logout());
-      });
+  
+  useEffect(() => {
+    // Only check for client authentication if not in admin panel
+    const isAdminPanel = window.location.hostname.includes('admin') || localStorage.getItem('isAdmin') === 'true';
+    
+    if (!isAdminPanel) {
+      axiosInstance
+        .get("/api/v1/users/me")
+        .then((res) => {
+          dispatch(setUser(res.data.user));
+          console.log("Fullresponse: ", res.data.user)
+        })
+        .catch(() => {
+          dispatch(logout());
+        });
+    }
   }, []);
 
   useEffect(() => {

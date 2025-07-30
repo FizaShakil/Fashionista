@@ -47,5 +47,32 @@ const verifyAdminJWT = asyncHandler(async(req,res,next)=>{
     }
 })
 
+// Middleware that can verify both client and admin tokens
+const verifyAnyJWT = asyncHandler(async(req,res,next)=>{
+    try {
+        // Check for either accessToken or adminAccessToken
+        const clientToken = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
+        const adminToken = req.cookies?.adminAccessToken
+        
+        let token = clientToken || adminToken
+    
+        if(!token){
+            throw new ApiError(401, "Unauthorized request")
+        }
+        
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const user = await User.findById(decodedToken?._id)
+        .select("-password -refreshToken")
+    
+        if(!user){
+            throw new ApiError(401, "Invalid access token")
+        }
+        req.user = user;
+        next()
+    } catch (error) {
+        throw new ApiError(400, error?.message || "Invalid access token. Not able to verify")
+    }
+})
+
 export default verifyJWT
-export { verifyAdminJWT }
+export { verifyAdminJWT, verifyAnyJWT }

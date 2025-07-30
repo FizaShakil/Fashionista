@@ -8,17 +8,54 @@ import AdminLogin from './components/AdminLogin';
 import OrderDetail from './components/OrderDetail';
 import Dashboard from './components/Dashboard';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import axiosInstance from './axiosInstance';
 
-// Simple admin session check using localStorage
+// Admin authentication check
 const isAdminLoggedIn = () => {
   return localStorage.getItem('isAdmin') === 'true';
 };
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
-  if (!isAdminLoggedIn()) {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const verifyAdminAuth = async () => {
+      if (!isAdminLoggedIn()) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Verify admin token with server
+        await axiosInstance.get('/api/v1/users/me');
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Admin authentication failed:', error);
+        localStorage.removeItem('isAdmin');
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifyAdminAuth();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
   return children;
 };
 
