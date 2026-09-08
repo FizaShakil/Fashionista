@@ -26,6 +26,31 @@ const userSchema = new Schema({
     },
     refreshToken:{
         type: String
+    },
+    // --- Phase 1: B2B/B2C Customer Fields ---
+    customerType: {
+        type: String,
+        enum: ['retail', 'wholesale'],
+        default: 'retail'
+    },
+    wholesaleStatus: {
+        type: String,
+        enum: ['none', 'pending', 'approved', 'rejected'],
+        default: 'none'
+    },
+    companyDetails: {
+        companyName:    { 
+            type: String, default: null 
+        },
+        businessAddress: { 
+            type: String, default: null 
+        },
+        phone:           { 
+            type: String, default: null 
+        },
+        taxId:           { 
+            type: String, default: null 
+        }
     }
 }, {timestamps:true})
 
