@@ -19,6 +19,20 @@ const orderSchema = new mongoose.Schema({
 				type: Number, 
 				default: 1,
 			},
+			// --- Phase 1: Price snapshot fields ---
+			// unitPricePaid: null for all EXISTING (legacy) orders.
+			// New orders (Phase 4+) will populate this at checkout.
+			// NEVER backfill with calculated/guessed values.
+			unitPricePaid: {
+				type: Number,
+				default: null
+			},
+			// productName snapshot: null for legacy orders.
+			// Protects order display if a product is later deleted.
+			productName: {
+				type: String,
+				default: null
+			}
 		},
 	],
     name:{
@@ -51,6 +65,13 @@ const orderSchema = new mongoose.Schema({
 		enum: ['Delivered', 'Cancelled', 'Pending'],
 		default: "Pending",
 	},
+	// --- Phase 1: Order classification ---
+	// Defaults to 'retail'. Wholesale orders will be classified in Phase 4.
+	orderType: {
+		type: String,
+		enum: ['retail', 'wholesale'],
+		default: 'retail'
+	}
 }, 
 	{timestamps: true}
 )
