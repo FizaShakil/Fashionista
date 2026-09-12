@@ -39,24 +39,29 @@ const userSchema = new Schema({
         default: 'none'
     },
     companyDetails: {
-        companyName:    { 
+        companyName:{ 
+            type: String, 
+            default: null 
+        },  // optional
+        businessAddress:{ 
             type: String, default: null 
+        },  // optional
+        phone:{ 
+            type: String, 
+            default: null 
         },
-        businessAddress: { 
+        taxId:{ 
             type: String, default: null 
-        },
-        phone:           { 
-            type: String, default: null 
-        },
-        taxId:           { 
-            type: String, default: null 
-        }
+        }   // optional — NOT mandatory
     }
+    // wholesaleRequest application data has been moved to the
+    // WholesaleRequest collection (server/src/models/wholesaleRequest.model.js)
+    // User retains only account state: customerType, wholesaleStatus, companyDetails
 }, {timestamps:true})
 
 userSchema.pre("save", async function(next){
-      if(!this.isModified('password')) return next();
-      this.password = await bcryptjs.hash(this.password, 10)
+      if(!this.isModified('password')) return next(); 
+      this.password = await bcryptjs.hash(this.password, 10) 
       next()
 })
 
@@ -88,6 +93,6 @@ userSchema.methods.generateRefreshTokens = function(){
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
     )
-}
+} 
 
 export const User = mongoose.model("User", userSchema)
