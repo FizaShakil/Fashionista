@@ -23,6 +23,8 @@ import { setCartItems } from './Redux/cartSlice.js';
 import Checkout from './Components/AddToCart/Checkout.jsx';
 import OrderConfirmation from './Components/AddToCart/OrderConfirmation.jsx';
 import MyOrders from './Components/ComponentsMain/MyOrders.jsx';
+import WholesaleLanding from './Components/Wholesale/WholesaleLanding.jsx';
+import WholesaleApply from './Components/Wholesale/WholesaleApply.jsx';
 
 
 const App = () => {
@@ -31,21 +33,21 @@ const App = () => {
   const { user } = useSelector((state) => state.user)
   
   useEffect(() => {
-    // Only check for client authentication if not in admin panel
-    const isAdminPanel = window.location.hostname.includes('admin') || localStorage.getItem('isAdmin') === 'true';
+    // Restore session on page load/refresh via httpOnly cookie
+    // Skip only if this is actually the admin panel (different Vite app)
+    const isAdminPanel = window.location.hostname.includes('admin')
     
     if (!isAdminPanel) {
       axiosInstance
         .get("/api/v1/users/me")
         .then((res) => {
-          dispatch(setUser(res.data.user));
-          console.log("Fullresponse: ", res.data.user)
+          dispatch(setUser(res.data.user))
         })
         .catch(() => {
-          dispatch(logout());
-        });
+          dispatch(logout())
+        })
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const loadCart = async () => {
@@ -114,6 +116,8 @@ const App = () => {
           <Route path='/checkout' element={<Checkout/>} />
           <Route path='/order-confirmation' element={<OrderConfirmation/>} />
           <Route path='/myorders' element={<MyOrders/>} />
+          <Route path='/wholesale' element={<WholesaleLanding />} />
+          <Route path='/wholesale/apply' element={<WholesaleApply />} />
         </Routes>
       </div>
 

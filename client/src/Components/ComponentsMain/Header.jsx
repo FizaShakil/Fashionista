@@ -62,6 +62,10 @@ const Header = () => {
             className={({ isActive }) => `hover:text-gray-100 ml-4 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
               Contact Us
             </NavLink>
+            <NavLink to="/wholesale"
+            className={({ isActive }) => `hover:text-gray-100 ml-4 hover:underline ${isActive ? "text-gray-100 underline" : "text-white"}`}>
+              Wholesale
+            </NavLink>
           </div>
          
             
@@ -148,6 +152,7 @@ const Header = () => {
             )}
           </div>
           <NavLink to='/contactus' className='block px-4 py-2 text-gray-800 hover:bg-gray-200'>Contact Us</NavLink>
+          <NavLink to='/wholesale' className='block px-4 py-2 text-gray-800 hover:bg-gray-200'>Wholesale</NavLink>
         </div>
       )}
     </nav>
