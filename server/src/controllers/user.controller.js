@@ -208,10 +208,8 @@ const getCurrentUser = asyncHandler(async(req,res)=>{
       }
 })
 const getAllUserDetails = asyncHandler(async(req, res)=>{
-    const {email} = req.body
-
      const users = await User.find({})
-     .select("username email createdAt updatedAt")
+     .select("username email customerType wholesaleStatus companyDetails createdAt updatedAt")
 
      if(!users){
         throw new ApiError(500, "Something went wrong while fetching the users details")
