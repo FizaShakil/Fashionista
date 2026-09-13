@@ -22,8 +22,7 @@ const Login = () => {
             { email, password }
         );
         const { user, accessToken } = res.data.data;
-        // console.log("My Response:", res.data.data)
-       const authUser = { ...user, accessToken };
+        const authUser = { ...user, accessToken };
         dispatch(setUser(authUser));
 
     // Sync cart
