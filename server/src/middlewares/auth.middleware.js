@@ -53,6 +53,8 @@ const verifyAdminJWT = asyncHandler(async(req,res,next)=>{
 })
 
 // Middleware that can verify both client and admin tokens
+// ⚠️ NOTE: This middleware is currently UNUSED - kept for reference/future use
+// Do NOT use this in production - use verifyClientJWT or verifyAdminJWT instead
 const verifyAnyJWT = asyncHandler(async(req,res,next)=>{
     try {
         // Check for either accessToken or adminAccessToken
@@ -83,5 +85,54 @@ const verifyAnyJWT = asyncHandler(async(req,res,next)=>{
     }
 })
 
+/**
+ * Strict client-only JWT middleware.
+ * ONLY reads the `accessToken` cookie — never `adminAccessToken`.
+ * Used for /me on the client to prevent admin sessions bleeding into the client app.
+ */
+const verifyClientJWT = asyncHandler(async(req,res,next)=>{
+    try {
+        // Deliberately ignore adminAccessToken — client sessions must be isolated
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
+
+        if(!token){
+            throw new ApiError(401, "Unauthorized request")
+        }
+
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const user = await User.findById(decodedToken?._id)
+            .select("-password -refreshToken")
+
+        if(!user){
+            throw new ApiError(401, "Invalid access token")
+        }
+
+        req.user = user
+        next()
+    } catch (error) {
+        throw new ApiError(400, error?.message || "Invalid access token")
+    }
+})
+
 export default verifyJWT
-export { verifyAdminJWT, verifyAnyJWT }
+export { verifyAdminJWT, verifyAnyJWT, verifyClientJWT }
+
+/**
+ * Optional JWT middleware — does NOT reject unauthenticated requests.
+ * If a valid token is present, populates req.user.
+ * If no token (guest), req.user stays undefined and the request continues.
+ * Used for public product endpoints that need pricing context when available.
+ */
+export const verifyJWTOptional = asyncHandler(async (req, res, next) => {
+    try {
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
+        if (!token) { return next() }  // guest — continue without user
+
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
+        if (user) req.user = user
+    } catch {
+        // invalid/expired token — treat as guest, do not reject
+    }
+    next()
+})

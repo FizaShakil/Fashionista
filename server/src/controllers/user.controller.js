@@ -114,10 +114,13 @@ const loginUser = asyncHandler(async(req,res)=>{
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
     // Set different cookie for admin
+    // For admin: set BOTH adminAccessToken (for admin route protection) AND accessToken (for /me verification)
     if (user.role === 'admin') {
+      console.log('Admin login: setting adminAccessToken and accessToken cookies')
       return res
         .status(200)
         .cookie("adminAccessToken", accessToken, options)
+        .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
           new ApiResponse(
@@ -128,18 +131,19 @@ const loginUser = asyncHandler(async(req,res)=>{
           )
         );
     } else {
-    return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-        new ApiResponse(
-            200, {
-                user: loggedInUser, accessToken, refreshToken
-            },
-            "User logged in successfully!! "
-        )
-        );
+      console.log('User login: setting accessToken and refreshToken cookies')
+      return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+          new ApiResponse(
+              200, {
+                  user: loggedInUser, accessToken, refreshToken
+              },
+              "User logged in successfully!! "
+          )
+          );
     }
 })
 
