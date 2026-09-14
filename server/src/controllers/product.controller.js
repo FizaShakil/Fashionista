@@ -1,187 +1,241 @@
-import { Product } from "../models/product.model.js";
-import {uploadOnCloudinary} from '../utils/cloudinary.js'
-import {asyncHandler} from '../utils/asyncHandler.js'
-import {ApiError} from '../utils/ApiError.js'
+import { Product } from "../models/product.model.js"
+import { Category } from "../models/category.model.js"
+import { uploadOnCloudinary } from '../utils/cloudinary.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
+import { ApiError } from '../utils/ApiError.js'
+import { ApiResponse } from '../utils/ApiResponse.js'
+import { buildCustomerContext, attachPricing } from '../services/pricing.service.js'
 import path from "path"
-import {ApiResponse} from '../utils/ApiResponse.js'
 
-const uploadProductDetails = asyncHandler(async(req,res)=>{
-    const {name, productUniqueID, description, price, gender, newArrival} = req.body;
-    console.log("Name: ", name)
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN: Upload / create product
+// POST /api/v1/products/upload-product-details  (also: /add-product-details)
+// ─────────────────────────────────────────────────────────────────────────────
+const uploadProductDetails = asyncHandler(async (req, res) => {
+    const {
+        name, productUniqueID, description, price, gender, newArrival,
+        retailRegularPrice, retailSalePrice,
+        wholesaleRegularPrice, wholesaleSalePrice, wholesaleMOQ,
+        categoryId   // optional single category ID from admin form
+    } = req.body
 
-    if ([name, productUniqueID, description, price, gender, newArrival].some((field) => !field?.trim())) {
-        throw new ApiError(400, "All fields are required")
+    if ([name, productUniqueID, description, gender].some(f => !f?.toString().trim())) {
+        throw new ApiError(400, "name, productUniqueID, description and gender are required")
+    }
+    if (!price && !retailRegularPrice) {
+        throw new ApiError(400, "A retail price is required")
     }
 
-    const productImageLocalPath = path.join(process.cwd(), req.file?.path).replace(/\\/g, "/");
+    const productImageLocalPath = path.join(process.cwd(), req.file?.path).replace(/\\/g, "/")
+    if (!productImageLocalPath) throw new ApiError(400, "Product image required")
 
-    if(!productImageLocalPath){
-        throw new ApiError(400, "Product Image Required")
-    }
-
-    console.log('Product image local path before upload: ', productImageLocalPath)
-    
-    //upload image from local path to cloudinay
     const productImage = await uploadOnCloudinary(productImageLocalPath)
-     
-    // check if product image is uploaded or not
-    if(!productImage){
-        throw new ApiError(400, "Failed to upload Product image on cloudinary")
+    if (!productImage) throw new ApiError(400, "Failed to upload product image to Cloudinary")
+
+    const numericRetailRegular = Number(retailRegularPrice || price)
+    const numericPrice         = Number(price || retailRegularPrice)
+    const numericRetailSale    = retailSalePrice        ? Number(retailSalePrice)        : null
+    const numericWsRegular     = wholesaleRegularPrice  ? Number(wholesaleRegularPrice)  : null
+    const numericWsSale        = wholesaleSalePrice     ? Number(wholesaleSalePrice)     : null
+    const numericMOQ           = wholesaleMOQ           ? Number(wholesaleMOQ)           : 1
+
+    if (numericRetailSale !== null && numericRetailSale >= numericRetailRegular)
+        throw new ApiError(400, "retailSalePrice must be less than retailRegularPrice")
+    if (numericWsRegular !== null && numericWsSale !== null && numericWsSale >= numericWsRegular)
+        throw new ApiError(400, "wholesaleSalePrice must be less than wholesaleRegularPrice")
+    if (numericMOQ <= 0 || !Number.isInteger(numericMOQ))
+        throw new ApiError(400, "wholesaleMOQ must be a positive integer")
+
+    // Validate and resolve category
+    const categories = []
+    if (categoryId) {
+        const cat = await Category.findById(categoryId)
+        if (!cat) throw new ApiError(400, "Invalid category ID")
+        if (!cat.isActive) throw new ApiError(400, "Cannot assign a deactivated category")
+        categories.push(cat._id)
     }
 
-    // if everything is working fine, create entry in DB
     const product = await Product.create({
-        name, 
-        productUniqueID,
-        description, 
-        price, 
+        name, productUniqueID, description,
+        price:                numericPrice,
+        retailRegularPrice:   numericRetailRegular,
+        retailSalePrice:      numericRetailSale,
+        wholesaleRegularPrice: numericWsRegular,
+        wholesaleSalePrice:   numericWsSale,
+        wholesaleMOQ:         numericMOQ,
         gender,
-        productImage: productImage.url, 
-        newArrival
+        productImage:         productImage.url,
+        newArrival:           newArrival === 'true' || newArrival === true,
+        categories
     })
 
+    const uploadedProduct = await Product.findById(product._id).populate('categories', 'name slug')
+    if (!uploadedProduct) throw new ApiError(500, "Something went wrong while saving product")
 
-    // check if product created or not
-
-    const uploadedProduct = await Product.findById(product._id)
-
-    if(!uploadedProduct){
-        throw new ApiError(500, "Something went wrong while uploading product details")
-    }
-
-    // return response
     return res.status(201).json(
-        new ApiResponse(200, uploadedProduct, "Product details uploaded successfully!!")
+        new ApiResponse(200, uploadedProduct, "Product uploaded successfully")
     )
 })
 
-
-//update product details
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN: Update product details
+// PATCH /api/v1/products/update-product-details
+// ─────────────────────────────────────────────────────────────────────────────
 const updateProductDetails = asyncHandler(async (req, res) => {
-    const { productUniqueID, name, description, price, gender, newArrival } = req.body;
+    const {
+        productUniqueID, name, description, price, gender, newArrival,
+        retailRegularPrice, retailSalePrice,
+        wholesaleRegularPrice, wholesaleSalePrice, wholesaleMOQ,
+        categoryId   // optional — pass null to clear, pass ID to set
+    } = req.body
 
-    // Check if productUniqueID is provided
-    if (!productUniqueID) {
-        throw new ApiError(400, "Product Unique ID is required!");
+    if (!productUniqueID) throw new ApiError(400, "productUniqueID is required")
+
+    const product = await Product.findOne({ productUniqueID })
+    if (!product) throw new ApiError(404, "Product not found")
+
+    if (name)        product.name        = name
+    if (description) product.description = description
+    if (gender)      product.gender      = gender
+    if (newArrival !== undefined) product.newArrival = newArrival
+
+    if (price || retailRegularPrice) {
+        const newRetailRegular = Number(retailRegularPrice || price)
+        product.price              = Number(price || retailRegularPrice)
+        product.retailRegularPrice = newRetailRegular
+    }
+    if (retailSalePrice !== undefined) {
+        const numSale = retailSalePrice === null || retailSalePrice === '' ? null : Number(retailSalePrice)
+        if (numSale !== null && numSale >= product.retailRegularPrice)
+            throw new ApiError(400, "retailSalePrice must be less than retailRegularPrice")
+        product.retailSalePrice = numSale
+    }
+    if (wholesaleRegularPrice !== undefined) {
+        product.wholesaleRegularPrice = wholesaleRegularPrice === null || wholesaleRegularPrice === ''
+            ? null : Number(wholesaleRegularPrice)
+    }
+    if (wholesaleSalePrice !== undefined) {
+        const numWsSale = wholesaleSalePrice === null || wholesaleSalePrice === '' ? null : Number(wholesaleSalePrice)
+        if (numWsSale !== null && product.wholesaleRegularPrice !== null && numWsSale >= product.wholesaleRegularPrice)
+            throw new ApiError(400, "wholesaleSalePrice must be less than wholesaleRegularPrice")
+        product.wholesaleSalePrice = numWsSale
+    }
+    if (wholesaleMOQ !== undefined && wholesaleMOQ !== '') {
+        const numMOQ = Number(wholesaleMOQ)
+        if (numMOQ <= 0 || !Number.isInteger(numMOQ))
+            throw new ApiError(400, "wholesaleMOQ must be a positive integer")
+        product.wholesaleMOQ = numMOQ
     }
 
-    // Find product by productUniqueID
-    const product = await Product.findOne({ productUniqueID });
-
-    // If product not found, return error
-    if (!product) {
-        throw new ApiError(404, "Product not found with the given Unique ID");
+    // Category update
+    if (categoryId !== undefined) {
+        if (categoryId === null || categoryId === '') {
+            product.categories = []
+        } else {
+            const cat = await Category.findById(categoryId)
+            if (!cat) throw new ApiError(400, "Invalid category ID")
+            if (!cat.isActive) throw new ApiError(400, "Cannot assign a deactivated category")
+            product.categories = [cat._id]
+        }
     }
 
-    // Update only the fields that are provided
-    if (name) product.name = name;
-    if (description) product.description = description;
-    if (price) product.price = price;
-    if (gender) product.gender = gender;
-    if (newArrival !== undefined) product.newArrival = newArrival;
+    await product.save()
 
-    // Save the updated product
-    await product.save();
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, product, "Product details updated successfully!"));
-});
-
-
-//delete product details
-const deleteProductDetails = asyncHandler(async(req,res)=>{
-
-    //give product unique id to delete
-    const {productUniqueID} = req.body;
-     
-    //if product unique id is not given, throw error
-    if(!productUniqueID){
-        throw new ApiError(400, "Product's unique ID is required to delete")
-    }
-    
-    //delete product
-    const product= await Product.findOneAndDelete({productUniqueID})
-    
-    // if no product exist, throw error
-    if(!product){
-        throw new ApiError(400, "Product ID not found")
-    }
-
-    //return response
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, product, "Product deleted successfully!")
+    const updated = await Product.findById(product._id).populate('categories', 'name slug')
+    return res.status(200).json(
+        new ApiResponse(200, updated, "Product updated successfully")
     )
 })
 
-// Get product details
-const getProductDetails = asyncHandler(async(req,res)=>{
-    
-    //query request from frontend
-    const {gender, newArrival, search, price} = req.query
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN: Delete product
+// DELETE /api/v1/products/delete-product-details
+// ─────────────────────────────────────────────────────────────────────────────
+const deleteProductDetails = asyncHandler(async (req, res) => {
+    const { productUniqueID } = req.body
+    if (!productUniqueID) throw new ApiError(400, "productUniqueID is required")
+
+    const product = await Product.findOneAndDelete({ productUniqueID })
+    if (!product) throw new ApiError(404, "Product not found")
+
+    return res.status(200).json(
+        new ApiResponse(200, product, "Product deleted successfully")
+    )
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUBLIC: Get product listing
+// GET /api/v1/products/get-product-details
+// Uses verifyJWTOptional — req.user may be undefined (guest)
+// ─────────────────────────────────────────────────────────────────────────────
+const getProductDetails = asyncHandler(async (req, res) => {
+    const { gender, newArrival, search, price, category } = req.query
 
     const filter = {}
+    if (gender)     filter.gender     = gender
+    if (price)      filter.price      = Number(price)
+    if (newArrival) filter.newArrival = newArrival === "true"
+    if (search)     filter.name       = { $regex: search, $options: "i" }
 
-    if(gender) filter.gender = gender;
-    if(price) filter.price = price;
-    if(newArrival) filter.newArrival = newArrival === "true";
-    if(search) filter.name = {$regex: "search", $options: "i"}
-   
-    const products = await Product.find(filter)
-    .select("name price description gender newArrival productImage productUniqueID")
-    
-    if(!products){
-        throw new ApiError(500, "Something went wrong while getting products")
+    // Filter by category slug
+    if (category) {
+        const cat = await Category.findOne({ slug: category.toLowerCase(), isActive: true })
+        if (!cat) {
+            // Unknown slug — return empty rather than crash
+            return res.status(200).json(new ApiResponse(200, [], "No products found for this category"))
+        }
+        filter.categories = cat._id
     }
-    //return response
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, products, "Products fetched successfully!")
-    ) 
+
+    const products = await Product.find(filter)
+        .populate('categories', 'name slug')
+        .lean()
+
+    const customerCtx = buildCustomerContext(req.user || null)
+    const pricedProducts = products.map(p => attachPricing(p, customerCtx))
+
+    return res.status(200).json(
+        new ApiResponse(200, pricedProducts, "Products fetched successfully")
+    )
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PUBLIC: Get single product detail
+// GET /api/v1/products/get-single-product-details/:id
+// Uses verifyJWTOptional — req.user may be undefined (guest)
+// ─────────────────────────────────────────────────────────────────────────────
 const getSingleProductDetails = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-  
-    const product = await Product.findById(id);
-  
-    if (!product) {
-      throw new ApiError(404, "Product not found");
-    }
-  
-    return res
-      .status(200)
-      .json(new ApiResponse(200, product, "Product fetched successfully!"));
-  });
-  
+    const { id } = req.params
 
-const updateProductImage = asyncHandler(async(req,res)=>{
-    const productImagePath = req.files?.path;
-    if(!productImagePath){
-        throw new ApiError(400, "Path required to update")
-    }
+    const product = await Product.findById(id)
+        .populate('categories', 'name slug')
+        .lean()
+    if (!product) throw new ApiError(404, "Product not found")
+
+    const customerCtx = buildCustomerContext(req.user || null)
+    const pricedProduct = attachPricing(product, customerCtx)
+
+    return res.status(200).json(
+        new ApiResponse(200, pricedProduct, "Product fetched successfully")
+    )
+})
+
+const updateProductImage = asyncHandler(async (req, res) => {
+    const productImagePath = req.files?.path
+    if (!productImagePath) throw new ApiError(400, "Path required")
+
     const productImage = await uploadOnCloudinary(productImagePath)
-    if(!productImage){
-        throw new ApiError(400, "Failed to upload file path on cloudinary")
-    }
+    if (!productImage) throw new ApiError(400, "Failed to upload image")
+
     const product = await Product.findByIdAndUpdate(
         req.product?._id,
-        {
-            $set:{
-                productImage: productImage.url
-            }
-        },
-        {new: true}
+        { $set: { productImage: productImage.url } },
+        { new: true }
     )
 
-    return res.status(200)
-    .json(
-        200, product, "Product image updated successfully! "
-    )
+    return res.status(200).json(new ApiResponse(200, product, "Product image updated"))
 })
+
 export {
     uploadProductDetails,
     updateProductDetails,

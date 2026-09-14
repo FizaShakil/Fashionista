@@ -6,6 +6,8 @@ import productRouter from "./routes/product.router.js";
 import cartRouter from "./routes/cart.router.js";
 import orderRouter from "./routes/order.router.js";
 import dashboardRouter from './routes/dashboard.router.js';
+import wholesaleRouter from './routes/wholesale.router.js';
+import categoryRouter from './routes/category.router.js';
 
 
 const app = express();
@@ -61,5 +63,7 @@ app.use("/api/v1/products" , productRouter)
 app.use("/api/v1/cart", cartRouter)
 app.use("/api/v1/orders", orderRouter)
 app.use('/api/v1/dashboard', dashboardRouter);
+app.use('/api/v1/users/wholesale', wholesaleRouter);
+app.use('/api/v1/categories', categoryRouter);
 
 export default app;
