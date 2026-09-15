@@ -6,7 +6,6 @@ import axiosInstance from '../../axiosInstance';
 const ProductPage = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
-
   const handleAddToCart = useHandleAddToCart();
 
   useEffect(() => {
@@ -16,24 +15,61 @@ const ProductPage = () => {
   }, [productId]);
 
   if (!product) {
-    return <div className='text-center text-3xl font-semibold'>Product not found!</div>;
+    return <div className='text-center text-3xl font-semibold mt-20'>Product not found!</div>;
   }
 
-  const defaultImage = "https://via.placeholder.com/150";
+  const pricing = product.pricing
+  const defaultImage = "https://via.placeholder.com/150"
 
   return (
     <div className="product-details md:flex md:flex-row py-8 w-[80%] md:justify-around mx-auto">
-      <div className="bg-white md:w-[40%] shadow-md h-[40h] rounded-lg p-8">
+      <div className="bg-white md:w-[40%] shadow-md rounded-lg p-8">
         <img
           src={product.productImage || defaultImage}
           alt={product.name || "Product Image"}
           className="w-full h-64 md:h-[50vh] object-cover rounded-md mb-4"
         />
       </div>
+
       <div className='pt-10 sm:w-[50%]'>
         <h2 className="text-xl md:text-2xl font-bold">{product.name}</h2>
-        <p className="text-lg text-[17px] text-gray-600 pt-2">PKR {product.price}</p>
+
+        {/* Pricing block — driven by backend pricing object */}
+        <div className="pt-2">
+          {pricing ? (
+            <>
+              {/* Wholesale badge */}
+              {pricing.pricingType === 'wholesale' && (
+                <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded mb-1">
+                  Wholesale Price
+                </span>
+              )}
+
+              {/* Sale price with strikethrough */}
+              {pricing.salePrice ? (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-red-600">PKR {pricing.salePrice}</span>
+                  <span className="text-sm text-gray-400 line-through">PKR {pricing.regularPrice}</span>
+                </div>
+              ) : (
+                <span className="text-xl font-semibold text-gray-700">PKR {pricing.effectivePrice}</span>
+              )}
+
+              {/* MOQ info for wholesale products */}
+              {pricing.pricingType === 'wholesale' && pricing.wholesaleMOQ > 1 && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Min. order: {pricing.wholesaleMOQ} units
+                </p>
+              )}
+            </>
+          ) : (
+            // Fallback for legacy products before pricing engine
+            <span className="text-xl font-semibold text-gray-700">PKR {product.price}</span>
+          )}
+        </div>
+
         <p className="text-base text-slate-900 pt-4">Gender: {product.gender}</p>
+
         <p className='pt-5 text-xl font-semibold'>Size:</p>
         <div className='flex flex-row mt-1'>
           <button className='border-2 text-sm sm:text-base border-gray-400 px-2 md:px-5 py-1'>Small</button>
@@ -41,8 +77,10 @@ const ProductPage = () => {
           <button className='ml-4 border-2 text-sm sm:text-base border-gray-400 px-2 md:px-5 py-1'>Large</button>
           <button className='ml-4 border-2 text-sm sm:text-base border-gray-400 px-2 md:px-5 py-1'>XL</button>
         </div>
+
         <p className='pt-6 sm:pt-10 text-xl font-semibold'>Product Description</p>
         <p className='pt-2'>{product.description}</p>
+
         <button
           className='border-[2px] bg-[#22425d] text-white px-5 py-2 mt-3 hover:underline hover:bg-slate-50 hover:border-2 hover:text-[#22425d] hover:border-[#22425d] duration-200'
           onClick={() => handleAddToCart(product)}
