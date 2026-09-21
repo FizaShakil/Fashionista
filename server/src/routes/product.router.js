@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import {upload} from '../middlewares/multer.middleware.js'
-import { uploadProductDetails, deleteProductDetails, updateProductDetails, getProductDetails, getSingleProductDetails } from '../controllers/product.controller.js'
+import { uploadProductDetails, deleteProductDetails, updateProductDetails, getProductDetails, searchProducts, getDistinctColors, getSingleProductDetails } from '../controllers/product.controller.js'
 import { verifyAdminJWT, verifyJWTOptional } from '../middlewares/auth.middleware.js'
 import isAdmin from '../middlewares/admin.middleware.js'
 
@@ -15,6 +15,9 @@ productRouter.route('/update-product-details').patch(verifyAdminJWT, isAdmin, up
 // Public read routes — verifyJWTOptional so pricing is context-aware for logged-in users
 // but guests are not blocked
 productRouter.route('/get-product-details').get(verifyJWTOptional, getProductDetails)
+productRouter.route('/search').get(verifyJWTOptional, searchProducts)
+// Navigation data — distinct catalog colors for the mega menu "Shop by Color" section
+productRouter.route('/colors').get(getDistinctColors)
 productRouter.route('/get-single-product-details/:id').get(verifyJWTOptional, getSingleProductDetails)
 
 export default productRouter
