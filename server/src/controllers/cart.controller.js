@@ -17,6 +17,16 @@ const addToCart = asyncHandler(async (req, res) => {
     const product = await Product.findById(productID).lean()
     if (!product) throw new ApiError(404, "Product not found")
 
+    // Blueprint G5 — block add-to-cart if wholesale customer has no wholesale pricing on this product.
+    // Evaluated server-side using the pricing service — frontend cannot bypass this.
+    const customerCtx = buildCustomerContext(req.user)
+    const pricing = getEffectivePrice(product, customerCtx)
+    if (pricing.isWholesaleEligible && !pricing.isWholesaleAvailable) {
+        throw new ApiError(400,
+            `"${product.name}" is not available for wholesale purchase.`
+        )
+    }
+
     let cart = await Cart.findOne({ userID })
     if (!cart) {
         cart = new Cart({ userID, products: [{ productID, quantity: 1 }] })

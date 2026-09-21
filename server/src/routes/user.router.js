@@ -12,6 +12,9 @@ userRouter.route('/change-password').post(changePassword)
 // verifyClientJWT: strictly reads accessToken only — never adminAccessToken.
 // Prevents the admin session from bleeding into the client app on refresh.
 userRouter.route('/me').get(verifyClientJWT, getCurrentUser)
-userRouter.route('/get-all-users').get(verifyAdminJWT, isAdmin, getAllUserDetails)
+// verifyAdminJWT: reads adminAccessToken only — for admin panel session verification.
+// Keeps admin and client sessions fully isolated.
+userRouter.route('/admin/me').get(verifyAdminJWT, isAdmin, getCurrentUser)
+userRouter.route('/get-all-users').get(verifyAdminJWT, isAdmin, getAllUserDetails) 
 
-export default userRouter
+export default userRouter 

@@ -39,6 +39,14 @@ const placeUserOrder = asyncHandler(async (req, res) => {
 
         const pricing = getEffectivePrice(product, customerCtx, item.quantity)
 
+        // Blueprint G5 — block checkout if wholesale customer has no wholesale pricing on this product.
+        // Must NOT silently fall back to retail pricing for a wholesale order.
+        if (pricing.isWholesaleEligible && !pricing.isWholesaleAvailable) {
+            throw new ApiError(400,
+                `"${product.name}" is not available for wholesale purchase. Please remove it from your cart or contact us.`
+            )
+        }
+
         // For wholesale customers: enforce MOQ at checkout
         if (pricing.pricingType === 'wholesale' && !pricing.meetsMOQ) {
             throw new ApiError(400,
@@ -104,7 +112,13 @@ const getUserOrders = asyncHandler(async (req, res) => {
         })
         .sort({ createdAt: -1 })
 
-    if (!orders || orders.length === 0) throw new ApiError(404, "No orders found")
+    // An empty order history is a valid state — return 200 with empty array
+    // rather than 404, so the frontend can render the empty state correctly.
+    if (!orders || orders.length === 0) {
+        return res.status(200).json(
+            new ApiResponse(200, [], "No orders found")
+        )
+    }
 
     // Enrich order items: use unitPricePaid if available, fall back to live price
     // for legacy orders only (pre-Phase 3)

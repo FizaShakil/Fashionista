@@ -114,13 +114,13 @@ const loginUser = asyncHandler(async(req,res)=>{
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
     // Set different cookie for admin
-    // For admin: set BOTH adminAccessToken (for admin route protection) AND accessToken (for /me verification)
+    // For admin: set ONLY adminAccessToken (to prevent accidental client login on localhost)
+    // Admin JWT is verified by verifyAdminJWT middleware using adminAccessToken cookie
     if (user.role === 'admin') {
-      console.log('Admin login: setting adminAccessToken and accessToken cookies')
+      console.log('Admin login: setting adminAccessToken cookie only (NOT accessToken)')
       return res
         .status(200)
         .cookie("adminAccessToken", accessToken, options)
-        .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
           new ApiResponse(
